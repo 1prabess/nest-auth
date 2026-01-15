@@ -1,0 +1,26 @@
+services:
+  postgres:
+    image: bitnami/postgresql:latest
+    restart: always
+    environment:
+      POSTGRESQL_USERNAME: postgres
+      POSTGRESQL_PASSWORD: postgres
+      POSTGRESQL_DATABASE: auth_db
+    ports:
+      - '5435:5432'
+    volumes:
+      - postgres_data:/bitnami/postgresql
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - '5052:80'
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:
