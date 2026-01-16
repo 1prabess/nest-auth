@@ -17,6 +17,7 @@ export class UsersService {
     private readonly usersRepository: Repository<User>,
   ) {}
 
+  // Create a user
   async create(createUserDto: CreateUserDto) {
     // Check if the user already exists
     const existingUser = await this.usersRepository.findOneBy({
@@ -45,10 +46,12 @@ export class UsersService {
     return safeUser;
   }
 
+  // Find user by email
   async findByEmail(email: string) {
     return this.usersRepository.findOneBy({ email });
   }
 
+  // Find user by id
   async findById(id: number) {
     // Fetch user
     const user = await this.usersRepository.findOne({ where: { id } });
