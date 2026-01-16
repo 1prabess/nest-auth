@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Headers,
   Post,
   Req,
   Res,
@@ -13,6 +14,7 @@ import type { Request, Response } from 'express';
 import { ResponseMessage } from 'src/common/decorators/response-message.decorator';
 import { RegisterDto } from './dtos/register.dto';
 import {
+  clearAuthCookies,
   getAccessTokenCookieOption,
   getRefreshTokenCookieOption,
   setAuthCookies,
@@ -29,12 +31,9 @@ export class AuthController {
   @ResponseMessage('Login successful')
   async login(
     @Body() loginDto: LoginDto,
-    @Req() request: Request,
+    @Headers('user-agent') userAgent: string,
     @Res({ passthrough: true }) response: Response,
   ): Promise<void> {
-    // Get user agent from request
-    const userAgent = request.headers['user-agent'];
-
     // Get access & refresh tokens from the service
     const { accessToken, refreshToken } = await this.authService.login(
       loginDto,
@@ -43,7 +42,6 @@ export class AuthController {
 
     // Set access & refresh tokens in cookies
     setAuthCookies({ response, refreshToken, accessToken });
-
     return;
   }
 
@@ -69,7 +67,25 @@ export class AuthController {
 
     // Set access & refresh tokens in cookies
     setAuthCookies({ response, refreshToken, accessToken });
+    return;
+  }
 
+  @ApiOperation({ summary: 'Logs out a user' })
+  @Get('/logout')
+  @ResponseMessage('Logout successful')
+  @Get()
+  async logout(
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<void> {
+    // Get access token from cookies
+    const accessToken = request.cookies?.accessToken;
+    if (!accessToken) throw new UnauthorizedException('Access token missing');
+
+    await this.authService.logout(accessToken);
+
+    // Clear cookies
+    clearAuthCookies(response);
     return;
   }
 
@@ -99,7 +115,6 @@ export class AuthController {
 
     // Set new access token in cookies
     response.cookie('accessToken', accessToken, getAccessTokenCookieOption());
-
     return;
   }
 }
