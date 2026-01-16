@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { Session } from '../session.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from 'src/users/user.entity';
 
 @Injectable()
 export class SessionsService {
@@ -11,9 +10,12 @@ export class SessionsService {
     private sessionsRepository: Repository<Session>,
   ) {}
 
+  // Create session
   async create(userId: number, userAgent?: string, expiresIn = 30) {
+    // Set session expiry
     const expiresAt = new Date(Date.now() + expiresIn * 24 * 60 * 60 * 1000);
 
+    // Create session
     const session = this.sessionsRepository.create({
       user: { id: userId },
       userAgent,
@@ -23,6 +25,7 @@ export class SessionsService {
     return this.sessionsRepository.save(session);
   }
 
+  // Find session by id
   async findById(sessionId: number) {
     return await this.sessionsRepository.findOne({
       where: {
@@ -41,5 +44,9 @@ export class SessionsService {
 
     session.expiresAt = new Date(Date.now() + extraDays * 24 * 60 * 60 * 1000);
     return this.sessionsRepository.save(session);
+  }
+
+  async delete(sessionId: number) {
+    return await this.sessionsRepository.delete(sessionId);
   }
 }
