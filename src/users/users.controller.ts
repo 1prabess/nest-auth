@@ -2,7 +2,7 @@ import { Controller, Get, Req, UseGuards } from '@nestjs/common';
 import { UsersService } from './providers/users.service';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ResponseMessage } from 'src/common/decorators/response-message.decorator';
-import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
+import { AuthGuard } from 'src/guards/auth.guard';
 import { RoleGuard } from 'src/guards/role.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { UserRole } from './enums/user-role.enum';
@@ -10,7 +10,7 @@ import type { AuthenticatedRequest } from 'src/common/types/express-request.inte
 
 @ApiTags('Users')
 @Controller('users')
-@UseGuards(JwtAuthGuard, RoleGuard)
+@UseGuards(AuthGuard, RoleGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
