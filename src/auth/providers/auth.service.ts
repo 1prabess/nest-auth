@@ -70,6 +70,20 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
+  // Logout user
+  async logout(accessToken: string): Promise<void> {
+    // Verify access token and get payload
+    const { payload, error } = this.verifyAccessToken(accessToken);
+
+    if (error || !payload) {
+      throw new UnauthorizedException('Invalid access token');
+    }
+
+    await this.sessionsService.delete(payload.sessionId);
+
+    return;
+  }
+
   // Refresh user token
   async refreshUserToken(
     refreshToken: string,
@@ -118,8 +132,9 @@ export class AuthService {
     role: UserRole,
   ): string {
     const secret = this.configService.get<string>('JWT_ACCESS_SECRET');
-    if (!secret)
+    if (!secret) {
       throw new Error('JWT_ACCESS_SECRET not defined in environment');
+    }
 
     return jwt.sign({ userId, sessionId, role }, secret, { expiresIn: '15m' });
   }
@@ -127,8 +142,9 @@ export class AuthService {
   // Generate JWT refresh token
   private generateRefreshToken(sessionId: number): string {
     const secret = this.configService.get<string>('JWT_REFRESH_SECRET');
-    if (!secret)
+    if (!secret) {
       throw new Error('JWT_REFRESH_SECRET not defined in environment');
+    }
 
     return jwt.sign({ sessionId }, secret, { expiresIn: '30d' });
   }
@@ -139,7 +155,9 @@ export class AuthService {
     error: string | null;
   } {
     const secret = this.configService.get<string>('JWT_ACCESS_SECRET');
-    if (!secret) throw new Error('JWT_ACCESS_SECRET not defined');
+    if (!secret) {
+      throw new Error('JWT_ACCESS_SECRET not defined');
+    }
 
     try {
       const payload = jwt.verify(token, secret) as AccessTokenPayload;
@@ -158,7 +176,9 @@ export class AuthService {
     error: string | null;
   } {
     const secret = this.configService.get<string>('JWT_REFRESH_SECRET');
-    if (!secret) throw new Error('JWT_REFRESH_SECRET not defined');
+    if (!secret) {
+      throw new Error('JWT_REFRESH_SECRET not defined');
+    }
 
     try {
       const payload = jwt.verify(token, secret) as RefreshTokenPayload;
