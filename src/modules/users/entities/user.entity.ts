@@ -6,7 +6,8 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import type { OauthAccount } from './oauth-account.entity.js';
+import { OauthAccount } from './oauth-account.entity.js';
+import { RefreshToken } from '../../auth/entities/refresh-token.entity.js';
 
 @Entity()
 export class User {
@@ -52,6 +53,9 @@ export class User {
   })
   updatedAt: Date;
 
-  @OneToMany('OauthAccount', 'user')
+  @OneToMany(() => OauthAccount, (oauthAccount) => oauthAccount.user)
   oauthAccounts: OauthAccount[];
+
+  @OneToMany(() => RefreshToken, (refreshToken) => refreshToken.user)
+  refreshTokens: RefreshToken[];
 }
