@@ -34,7 +34,7 @@ async function bootstrap() {
   app.enableShutdownHooks();
 
   const openApiConfig = new DocumentBuilder()
-    .setTitle('EAuth')
+    .setTitle('nest-auth')
     .setDescription(
       'Authentication service with email/password and Google OAuth.',
     )
