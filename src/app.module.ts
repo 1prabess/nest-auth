@@ -6,6 +6,7 @@ import { envSchema } from './configs/env.validation.js';
 import { UserModule } from './modules/users/user.module.js';
 import { DatabaseModule } from './database/database.module.js';
 import { AuthModule } from './modules/auth/auth.module.js';
+import { RedisModule } from './modules/redis/redis.module.js';
 
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
 
@@ -29,6 +30,7 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
     UserModule,
     DatabaseModule,
     AuthModule,
+    RedisModule,
   ],
   controllers: [],
   providers: [],
