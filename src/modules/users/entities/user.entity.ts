@@ -5,6 +5,7 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
+  type Relation,
 } from 'typeorm';
 import { OauthAccount } from './oauth-account.entity.js';
 import { RefreshToken } from '../../auth/entities/refresh-token.entity.js';
@@ -57,5 +58,5 @@ export class User {
   oauthAccounts: OauthAccount[];
 
   @OneToMany(() => RefreshToken, (refreshToken) => refreshToken.user)
-  refreshTokens: RefreshToken[];
+  refreshTokens: Relation<RefreshToken[]>;
 }

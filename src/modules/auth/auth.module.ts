@@ -13,12 +13,18 @@ import { ConfigModule, ConfigType } from '@nestjs/config';
 import jwtConfig from '../../configs/jwt.config.js';
 import { JwtModule } from '@nestjs/jwt';
 import { parseDurationToSeconds } from '../../common/utils/duration.util.js';
+import { TokenRevocationService } from './token-revocation.service.js';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { RefreshToken } from './entities/refresh-token.entity.js';
+import { RedisModule } from '../redis/redis.module.js';
 
 @Module({
   imports: [
     UserModule,
     PassportModule,
     ConfigModule.forFeature(jwtConfig),
+    TypeOrmModule.forFeature([RefreshToken]),
+    RedisModule,
     JwtModule.registerAsync({
       imports: [ConfigModule.forFeature(jwtConfig)],
       inject: [jwtConfig.KEY],
@@ -39,6 +45,7 @@ import { parseDurationToSeconds } from '../../common/utils/duration.util.js';
     JwtStrategy,
     LocalAuthGuard,
     JwtAuthGuard,
+    TokenRevocationService,
   ],
   controllers: [AuthController],
 })

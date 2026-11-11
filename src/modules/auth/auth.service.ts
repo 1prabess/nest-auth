@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { UserService } from '../users/user.service.js';
 import { PasswordService } from './password.service.js';
-import { AuthTokens, TokenService } from './token.service.js';
+import { AuthTokens, SessionContext, TokenService } from './token.service.js';
 import { RegisterDto } from './dto/register.dto.js';
 import { User } from '../users/entities/user.entity.js';
 
@@ -20,7 +20,10 @@ export class AuthService {
     private readonly tokenService: TokenService,
   ) {}
 
-  async register(registerDto: RegisterDto): Promise<AuthTokens> {
+  async register(
+    registerDto: RegisterDto,
+    context: SessionContext,
+  ): Promise<AuthTokens> {
     const existing = await this.userService.findByEmail(registerDto.email);
 
     if (existing) {
@@ -36,11 +39,18 @@ export class AuthService {
       passwordHash,
     });
 
-    return this.tokenService.issueAccessToken(user);
+    return this.tokenService.issueTokenPair(user, context);
   }
 
-  async issueAccessToken(user: User): Promise<AuthTokens> {
-    return this.tokenService.issueAccessToken(user);
+  async login(user: User, context: SessionContext): Promise<AuthTokens> {
+    return this.tokenService.issueTokenPair(user, context);
+  }
+
+  async issueAccessToken(
+    user: User,
+    context: SessionContext,
+  ): Promise<AuthTokens> {
+    return this.tokenService.issueTokenPair(user, context);
   }
 
   async validateCredentials(email: string, password: string): Promise<User> {
@@ -61,5 +71,37 @@ export class AuthService {
     }
 
     return user;
+  }
+
+  async refresh(
+    rawRefreshToken: string,
+    context: SessionContext,
+  ): Promise<AuthTokens> {
+    const stored = await this.tokenService.findRefreshToken(rawRefreshToken);
+    if (!stored) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+
+    if (stored.revokedAt) {
+      await this.tokenService.revokeRefreshToken(
+        stored.sessionId,
+        'reuse_detected',
+      );
+      throw new UnauthorizedException('Refresh token has already been used');
+    }
+
+    if (stored.expiresAt.getTime() <= Date.now()) {
+      throw new UnauthorizedException('Refresh token has expired');
+    }
+
+    const user = await this.userService.findById(stored.user_id);
+
+    if (!user) {
+      throw new UnauthorizedException('Account no longer exists');
+    }
+
+    await this.tokenService.revokeRefreshToken(stored.id, 'rotated');
+
+    return this.tokenService.issueTokenPair(user, context, stored.sessionId);
   }
 }
